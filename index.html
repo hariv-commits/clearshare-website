@@ -305,6 +305,8 @@ dialog pre{background:var(--surface-2);border-radius:var(--r-s);padding:12px;fon
 @keyframes sk{to{background-position:-200% 0}}
 </style>
 
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="mark" viewBox="0 0 64 64">
     <rect x="5" y="5" width="54" height="54" rx="15" fill="none" stroke="currentColor" stroke-width="4.5"/>
@@ -487,7 +489,16 @@ dialog pre{background:var(--surface-2);border-radius:var(--r-s);padding:12px;fon
       </div>
       <div class="wstep" data-step="3">
         <label class="field">Desired roles<input name="roles" required placeholder="e.g. Platform Engineer, SRE"><span class="err"></span></label>
-        <label class="field">Top skills with years<span class="why">Example: Kubernetes (4), Go (3), Terraform (5)</span><input name="skills" required><span class="err"></span></label>
+        <div class="two">
+          <label class="field">Primary technologies<span class="why">Comma-separated. Example: Kubernetes, Go, Terraform, AWS</span><input name="tech" required placeholder="Kubernetes, Go, Terraform, AWS"><span class="err"></span></label>
+          <label class="field">Total years of experience<input name="years" type="number" min="0" max="50" step="0.5" required inputmode="decimal"><span class="err"></span></label>
+        </div>
+        <label class="field">Skills with years <span class="opt">(optional)</span><span class="why">Example: Kubernetes (4), Go (3), Terraform (5)</span><input name="skills"></label>
+        <div class="two">
+          <label class="field">Current client bill rate <span class="opt">(optional, $/hr)</span><input name="bill" type="number" min="0" step="1" inputmode="numeric"></label>
+          <label class="field">Your share today <span class="opt">(optional, %)</span><input name="split" type="number" min="1" max="100" step="1" inputmode="numeric"></label>
+        </div>
+        <label class="field">Work authorization <span class="opt">(optional)</span><span class="why">Helps us match you with an employer that can support your status. Not used to screen you out.</span><select name="visa"><option value="">Prefer not to say</option><option>H-1B</option><option>F-1 OPT / STEM OPT</option><option>Green card</option><option>U.S. citizen</option><option>TN</option><option>L-1</option><option>H-4 EAD</option><option>Other</option></select></label>
         <div class="two">
           <label class="field">Work arrangement<select name="arr" required><option value="">Choose…</option><option>Remote</option><option>Hybrid</option><option>On-site</option><option>Flexible</option></select><span class="err"></span></label>
           <label class="field">Available from<input name="avail" type="date" required><span class="err"></span></label>
@@ -584,8 +595,10 @@ dialog pre{background:var(--surface-2);border-radius:var(--r-s);padding:12px;fon
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const money=n=>'$'+n.toFixed(2)+'/hr';
 const PUBLISHED_URL='https://clearsharetechnologies.com';
-const FORM_KEY='';  // Web3Forms access key (delivers to the ClearShare inbox)
-const CONTACT='connect@clearsharetechnologies.com';
+const CFG=window.CLEARSHARE_CONFIG||{}; const FORM_KEY=CFG.FORM_KEY||''; const CONTACT=CFG.CONTACT||'connect@clearsharetechnologies.com';
+const db=(CFG.SUPABASE_URL&&CFG.SUPABASE_ANON_KEY&&window.supabase)?window.supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY):null;
+async function save(table,row){ if(!db) throw new Error('database not configured'); const {error}=await db.from(table).insert(row); if(error) throw error; }
+async function notify(subject,fields,replyto){ if(!FORM_KEY) return; try{ await deliver(subject,fields,replyto); }catch(e){} }
 async function deliver(subject, fields, replyto){ if(!FORM_KEY) throw new Error('not configured'); const r=await fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({access_key:FORM_KEY,subject,from_name:'ClearShare website',replyto,...fields})}); const j=await r.json().catch(()=>({})); if(!r.ok||!j.success) throw new Error(j.message||'send failed'); return j; }  // filled after first publish
 
 /* ---------- routing ---------- */
@@ -647,7 +660,10 @@ function wshow(){ $$('.wstep').forEach(s=>s.classList.toggle('on',+s.dataset.ste
 function validate(){ let ok=true; $$(`.wstep[data-step="${step}"] [required]`).forEach(el=>{ const err=el.parentElement.querySelector('.err'); let msg=''; if(el.type==='checkbox'){ if(!el.checked){msg='Required to continue.';} } else if(!el.value.trim()) msg='This field is required.'; else if(el.type==='email'&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(el.value)) msg='Enter a valid email like name@example.com.'; el.setAttribute('aria-invalid',msg?'true':'false'); if(err) err.textContent=msg; if(msg) ok=false; }); if(!ok){ const first=$(`.wstep[data-step="${step}"] [aria-invalid="true"]`); first&&first.focus(); } return ok; }
 $('#wnext').onclick=()=>{ if(!validate()) return; if(step<4){ step++; wsave(true); wshow(); } else { wsave(true); const f=wiz.elements; const btn=$('#wnext'); btn.disabled=true; btn.textContent='Sending…';
     const fields={ 'First name':f.first.value,'Last name':f.last.value,'Preferred name':f.pref.value,'Email':f.email.value,'Phone':f.phone.value,'Location':f.loc.value,'Desired roles':f.roles.value,'Skills':f.skills.value,'Work arrangement':f.arr.value,'Available from':f.avail.value,'Engagement types':[...f.eng.selectedOptions].map(o=>o.value).join(', '),'Target compensation':f.comp.value,'Privacy/Terms acknowledged':f.priv.checked?'yes (v0.3-draft, '+new Date().toISOString()+')':'no','Email updates opt-in':f.mkt.checked?'yes':'no','SMS reminders opt-in':f.sms.checked?'yes':'no', botcheck:'' };
-    deliver(`Referral request — ${f.first.value} ${f.last.value}`, fields, f.email.value).then(()=>{ preview('Request sent',`<div class="banner good"><span>✓</span><span class="small">Thank you, ${f.first.value}. Your details are with us at <b>${CONTACT}</b>. We will reply from that address, usually within a few business days. Nothing is shared with any employer until you authorize a specific introduction.</span></div>`); try{localStorage.removeItem(KEY)}catch(e){} wiz.reset(); step=1; wshow(); }).catch(()=>{ preview('Could not send',`<div class="banner bad"><span>✕</span><span class="small">Your request did not go through. Your draft is saved on this device; please try again in a moment, or email us directly at <b>${CONTACT}</b>.</span></div>`); }).finally(()=>{ btn.disabled=false; wshow(); }); } };
+    const list=v=>v.split(',').map(x=>x.trim()).filter(Boolean);
+    const row={ first_name:f.first.value.trim(), last_name:f.last.value.trim(), preferred_name:f.pref.value||null, email:f.email.value.trim(), phone:f.phone.value||null, location:f.loc.value||null, desired_roles:f.roles.value||null, technologies:list(f.tech.value), skills_detail:f.skills.value||null, years_experience:f.years.value?+f.years.value:null, work_arrangement:f.arr.value||null, available_from:f.avail.value||null, engagement_types:[...f.eng.selectedOptions].map(o=>o.value), target_comp:f.comp.value||null, current_bill_rate:f.bill.value?+f.bill.value:null, current_share_pct:f.split.value?+f.split.value:null, visa_status:f.visa.value||null, privacy_ack:f.priv.checked, privacy_version:'v0.3-draft', email_optin:f.mkt.checked, sms_optin:f.sms.checked };
+    Object.assign(fields,{'Technologies':row.technologies.join(', '),'Years of experience':f.years.value,'Current bill rate':f.bill.value,'Current share %':f.split.value,'Work authorization':f.visa.value});
+    save('candidates',row).then(()=>notify(`Referral request — ${f.first.value} ${f.last.value}`, fields, f.email.value)).then(()=>{ preview('Request sent',`<div class="banner good"><span>✓</span><span class="small">Thank you, ${f.first.value}. Your details are with us at <b>${CONTACT}</b>. We will reply from that address, usually within a few business days. Nothing is shared with any employer until you authorize a specific introduction.</span></div>`); try{localStorage.removeItem(KEY)}catch(e){} wiz.reset(); step=1; wshow(); }).catch(()=>{ preview('Could not send',`<div class="banner bad"><span>✕</span><span class="small">Your request did not go through. Your draft is saved on this device; please try again in a moment, or email us directly at <b>${CONTACT}</b>.</span></div>`); }).finally(()=>{ btn.disabled=false; wshow(); }); } };
 $('#wback').onclick=()=>{ if(step>1){step--;wshow();} };
 $('#wsave').onclick=()=>wsave(false);
 wiz.addEventListener('submit',e=>e.preventDefault());
@@ -657,7 +673,8 @@ $('#parsebtn').onclick=()=>{ const rows=[['First name','Priya'],['Last name','Na
 /* ---------- employer lead ---------- */
 $('#lead').addEventListener('submit',e=>{ e.preventDefault(); let ok=true; $$('#lead [required]').forEach(el=>{ const err=el.parentElement.querySelector('.err'); let m=''; if(!el.value.trim()) m='This field is required.'; else if(el.type==='email'&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(el.value)) m='Enter a valid work email.'; el.setAttribute('aria-invalid',m?'true':'false'); err.textContent=m; if(m) ok=false; }); if(!ok) return; const f=new FormData(e.target); const btn=e.target.querySelector('button[type=submit]'); btn.disabled=true; const old=btn.textContent; btn.textContent='Sending…';
   const fields={'Company':f.get('co'),'Contact name':f.get('who'),'Work email':f.get('em'),'Preferred contact':f.get('via'),'Role':f.get('role'),'Location / arrangement':f.get('loc'),'Urgency':f.get('urg'),'Hiring need':f.get('need'), botcheck:''};
-  deliver(`Employer inquiry — ${f.get('co')}`, fields, f.get('em')).then(()=>{ preview('Inquiry sent',`<div class="banner good"><span>✓</span><span class="small">Thank you. Your inquiry is with us at <b>${CONTACT}</b>; we will reply from that address within a few business days.</span></div>`); e.target.reset(); }).catch(()=>{ preview('Could not send',`<div class="banner bad"><span>✕</span><span class="small">Your inquiry did not go through. Please try again in a moment, or email us directly at <b>${CONTACT}</b>.</span></div>`); }).finally(()=>{ btn.disabled=false; btn.textContent=old; }); });
+  const row={company:f.get('co'),contact_name:f.get('who'),work_email:f.get('em'),preferred_contact:f.get('via'),role:f.get('role'),location:f.get('loc')||null,urgency:f.get('urg'),hiring_need:f.get('need')||null};
+  save('employer_inquiries',row).then(()=>notify(`Employer inquiry — ${f.get('co')}`, fields, f.get('em'))).then(()=>{ preview('Inquiry sent',`<div class="banner good"><span>✓</span><span class="small">Thank you. Your inquiry is with us at <b>${CONTACT}</b>; we will reply from that address within a few business days.</span></div>`); e.target.reset(); }).catch(()=>{ preview('Could not send',`<div class="banner bad"><span>✕</span><span class="small">Your inquiry did not go through. Please try again in a moment, or email us directly at <b>${CONTACT}</b>.</span></div>`); }).finally(()=>{ btn.disabled=false; btn.textContent=old; }); });
 
 /* ---------- share ---------- */
 const url=PUBLISHED_URL||(document.referrer&&document.referrer.includes('claude.ai')?document.referrer:'');
