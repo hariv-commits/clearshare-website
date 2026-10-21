@@ -451,7 +451,7 @@ dialog pre{background:var(--surface-2);border-radius:var(--r-s);padding:12px;fon
       <div class="disc light" id="disclaimer" role="note" aria-label="Disclaimer" style="text-align:left">
         <b>Disclaimer.</b> Every figure on this site, including rates, monthly and annual amounts, differences and percentages, is a pre-tax illustration based solely on the values you enter. It is not an offer, a quote, a guarantee or a prediction of take-home pay. Your actual compensation is subject to federal, state and local income and payroll taxes and other withholdings, which depend on factors such as your work location, immigration and tax-residency status, marital and filing status, dependents, benefit elections and the engagement structure agreed with the employer. Any employer's rate, flat charge, payroll schedule, E-Verify enrollment and sponsorship practices are that employer's own and are confirmed in your agreement with it. ClearShare is a referral service only; it is not your employer, does not hold or file visas, and does not provide tax, legal, financial or immigration advice. Consult a qualified professional about your own situation.
       </div>
-      <p class="fine" style="margin-top:8px">ClearShare works on a referral basis only. Prototype · synthetic data · live actions disabled. “ClearShare Technologies” is a working name; registration, trademark and licensing are unverified. Privacy Notice and Terms are drafts.</p>
+      <p class="fine" style="margin-top:8px">Reach us at <b>connect@clearsharetechnologies.com</b>. ClearShare works on a referral basis only. “ClearShare Technologies” is a working name; registration, trademark and licensing are unverified. Privacy Notice and Terms are drafts.</p>
     </div>
   </div>
 </section>
@@ -464,7 +464,7 @@ dialog pre{background:var(--surface-2);border-radius:var(--r-s);padding:12px;fon
   <div class="card" style="margin-top:16px;max-width:720px">
     <div class="row" style="justify-content:space-between"><span class="eyebrow" id="wlabel">Step 1 of 4 · About you</span><span class="pill plain" id="wdraft">Draft · not saved</span></div>
     <div class="progress" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-    <form id="wiz" novalidate>
+    <form id="wiz" novalidate><input type="checkbox" name="botcheck" class="vh" tabindex="-1" aria-hidden="true">
       <div class="wstep on" data-step="1">
         <div class="two">
           <label class="field">First name <span class="opt">(required)</span><input name="first" required autocomplete="given-name"><span class="err"></span></label>
@@ -503,7 +503,7 @@ dialog pre{background:var(--surface-2);border-radius:var(--r-s);padding:12px;fon
         <p class="eyebrow" style="margin-top:8px">Optional communications</p>
         <label class="check"><input type="checkbox" name="mkt"><span>Email me about new roles that match my profile. <span class="muted">Optional. Off by default; change it any time in Preferences.</span></span></label>
         <label class="check"><input type="checkbox" name="sms"><span>Text me interview reminders. <span class="muted">Optional. Not live in the prototype.</span></span></label>
-        <div class="banner info"><span>ℹ</span><span class="small">Submitting creates a synthetic CandidateProfile and an audit event. No email is sent in this prototype.</span></div>
+        <div class="banner info"><span>ℹ</span><span class="small">Your details go to <b>connect@clearsharetechnologies.com</b> and nowhere else. We reply from that address. Prefer email? Write to us directly with your bill rate and current split.</span></div>
       </div>
       <div class="row" style="justify-content:space-between;margin-top:18px">
         <button type="button" class="btn" id="wback">Back</button>
@@ -534,7 +534,7 @@ dialog pre{background:var(--surface-2);border-radius:var(--r-s);padding:12px;fon
         <label class="field">Urgency<select name="urg"><option>Within 2 weeks</option><option>Within a month</option><option>This quarter</option><option>Exploring</option></select></label>
       </div>
       <label class="field">Hiring need<textarea name="need" rows="3" placeholder="Team, stack, openings, duration"></textarea></label>
-      <div class="row"><button class="btn primary" type="submit">Send inquiry (preview)</button><span class="small muted">Creates a synthetic EmployerLead for staff to qualify.</span></div>
+      <div class="row"><button class="btn primary" type="submit">Send inquiry</button><span class="small muted">Or email <b>connect@clearsharetechnologies.com</b>.</span></div>
     </form>
     <div class="stack">
       <div class="card"><p class="eyebrow">What employers get</p><ul class="small" style="margin:8px 0 0;padding-left:18px;display:grid;gap:6px"><li>Requests and open requisitions in one place</li><li>Shortlists of candidates who authorized sharing for your job</li><li>Structured interview feedback and offer approvals</li><li>Placement records with versioned terms</li></ul></div>
@@ -573,7 +573,7 @@ dialog pre{background:var(--surface-2);border-radius:var(--r-s);padding:12px;fon
 </main>
 
 <footer id="sitefoot"><div class="in">
-  <div class="row" style="justify-content:space-between"><span class="brand" style="font-size:1rem"><svg width="22" height="22"><use href="#mark"/></svg>ClearShare</span><span>Prototype · synthetic data · live actions disabled</span></div>
+  <div class="row" style="justify-content:space-between"><span class="brand" style="font-size:1rem"><svg width="22" height="22"><use href="#mark"/></svg>ClearShare</span><span>connect@clearsharetechnologies.com</span></div>
   <span>ClearShare works on a referral basis only; it is not your employer and does not hold visas. “ClearShare Technologies” is a working name; registration, trademark, domain and licensing are unverified. All rate figures are pre-tax illustrations, not take-home pay or compensation; actual pay is subject to taxes and withholdings that depend on location, immigration status, filing status and other factors. Nothing here is legal, tax or employment advice. Privacy Notice and Terms are drafts (v0.3) pending review.</span>
 </div></footer>
 
@@ -583,7 +583,10 @@ dialog pre{background:var(--surface-2);border-radius:var(--r-s);padding:12px;fon
 (function(){
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const money=n=>'$'+n.toFixed(2)+'/hr';
-const PUBLISHED_URL='https://clearsharetechnologies.com';  // filled after first publish
+const PUBLISHED_URL='https://clearsharetechnologies.com';
+const FORM_KEY='';  // Web3Forms access key (delivers to the ClearShare inbox)
+const CONTACT='connect@clearsharetechnologies.com';
+async function deliver(subject, fields, replyto){ if(!FORM_KEY) throw new Error('not configured'); const r=await fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({access_key:FORM_KEY,subject,from_name:'ClearShare website',replyto,...fields})}); const j=await r.json().catch(()=>({})); if(!r.ok||!j.success) throw new Error(j.message||'send failed'); return j; }  // filled after first publish
 
 /* ---------- routing ---------- */
 const pages=['home','join','employers','share'];
@@ -640,9 +643,11 @@ const wiz=$('#wiz'); let step=1; const KEY='clearshare.draft.v1';
 function wsave(silent){ try{ const fd=new FormData(wiz); const o={}; for(const [k,v] of fd.entries()){ if(k==='resume')continue; o[k]=o[k]?[].concat(o[k],v):v; } o._step=step; localStorage.setItem(KEY,JSON.stringify(o)); $('#wdraft').textContent='Draft · saved '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); if(!silent) toast('Draft saved on this device'); }catch(e){ if(!silent) toast('Could not save on this device'); } }
 function wload(){ try{ const o=JSON.parse(localStorage.getItem(KEY)||'null'); if(!o) return; for(const k in o){ const el=wiz.elements[k]; if(!el||k==='_step')continue; if(el.type==='checkbox') el.checked=o[k]==='on'; else if(el.multiple){ [...el.options].forEach(op=>op.selected=[].concat(o[k]).includes(op.value)); } else el.value=o[k]; } step=o._step||1; $('#wdraft').textContent='Draft · resumed'; }catch(e){} }
 const labels={1:'About you',2:'Resume',3:'Work preferences',4:'Acknowledgments'};
-function wshow(){ $$('.wstep').forEach(s=>s.classList.toggle('on',+s.dataset.step===step)); $$('.progress i').forEach((i,k)=>{i.className=k+1<step?'done':k+1===step?'cur':'';}); $('#wlabel').textContent=`Step ${step} of 4 · ${labels[step]}`; $('#wback').disabled=step===1; $('#wnext').textContent=step===4?'Create profile (preview)':'Continue'; }
+function wshow(){ $$('.wstep').forEach(s=>s.classList.toggle('on',+s.dataset.step===step)); $$('.progress i').forEach((i,k)=>{i.className=k+1<step?'done':k+1===step?'cur':'';}); $('#wlabel').textContent=`Step ${step} of 4 · ${labels[step]}`; $('#wback').disabled=step===1; $('#wnext').textContent=step===4?'Send my request':'Continue'; }
 function validate(){ let ok=true; $$(`.wstep[data-step="${step}"] [required]`).forEach(el=>{ const err=el.parentElement.querySelector('.err'); let msg=''; if(el.type==='checkbox'){ if(!el.checked){msg='Required to continue.';} } else if(!el.value.trim()) msg='This field is required.'; else if(el.type==='email'&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(el.value)) msg='Enter a valid email like name@example.com.'; el.setAttribute('aria-invalid',msg?'true':'false'); if(err) err.textContent=msg; if(msg) ok=false; }); if(!ok){ const first=$(`.wstep[data-step="${step}"] [aria-invalid="true"]`); first&&first.focus(); } return ok; }
-$('#wnext').onclick=()=>{ if(!validate()) return; if(step<4){ step++; wsave(true); wshow(); } else { wsave(true); log('candidate:new','CandidateProfile.created','CAND-00231 · privacy v0.3-draft acknowledged'); preview('Profile created (simulated)',`<div class="banner good"><span>✓</span><span class="small">CandidateProfile <code>CAND-00231</code> created with synthetic data. Acknowledgment recorded: Privacy v0.3-draft, Terms v0.3-draft, ${new Date().toISOString()}. Optional communications: ${wiz.elements.mkt.checked?'email on':'email off'}, ${wiz.elements.sms.checked?'SMS on':'SMS off'}.</span></div><p class="small muted">No verification email was sent. In production, verified email is required before sign-in.</p>`); try{localStorage.removeItem(KEY)}catch(e){} } };
+$('#wnext').onclick=()=>{ if(!validate()) return; if(step<4){ step++; wsave(true); wshow(); } else { wsave(true); const f=wiz.elements; const btn=$('#wnext'); btn.disabled=true; btn.textContent='Sending…';
+    const fields={ 'First name':f.first.value,'Last name':f.last.value,'Preferred name':f.pref.value,'Email':f.email.value,'Phone':f.phone.value,'Location':f.loc.value,'Desired roles':f.roles.value,'Skills':f.skills.value,'Work arrangement':f.arr.value,'Available from':f.avail.value,'Engagement types':[...f.eng.selectedOptions].map(o=>o.value).join(', '),'Target compensation':f.comp.value,'Privacy/Terms acknowledged':f.priv.checked?'yes (v0.3-draft, '+new Date().toISOString()+')':'no','Email updates opt-in':f.mkt.checked?'yes':'no','SMS reminders opt-in':f.sms.checked?'yes':'no', botcheck:'' };
+    deliver(`Referral request — ${f.first.value} ${f.last.value}`, fields, f.email.value).then(()=>{ preview('Request sent',`<div class="banner good"><span>✓</span><span class="small">Thank you, ${f.first.value}. Your details are with us at <b>${CONTACT}</b>. We will reply from that address, usually within a few business days. Nothing is shared with any employer until you authorize a specific introduction.</span></div>`); try{localStorage.removeItem(KEY)}catch(e){} wiz.reset(); step=1; wshow(); }).catch(()=>{ preview('Could not send',`<div class="banner bad"><span>✕</span><span class="small">Your request did not go through. Your draft is saved on this device; please try again in a moment, or email us directly at <b>${CONTACT}</b>.</span></div>`); }).finally(()=>{ btn.disabled=false; wshow(); }); } };
 $('#wback').onclick=()=>{ if(step>1){step--;wshow();} };
 $('#wsave').onclick=()=>wsave(false);
 wiz.addEventListener('submit',e=>e.preventDefault());
@@ -650,7 +655,9 @@ wload(); wshow();
 $('#parsebtn').onclick=()=>{ const rows=[['First name','Priya'],['Last name','Natarajan'],['Email','p.natarajan@example.com'],['Skills','Kubernetes (4), Go (3), Terraform (5), AWS (6)'],['Most recent role','Senior Platform Engineer, Lumen Grid, 2022–present'],['Certification','CKA (2024)'],['Education','B.S. Computer Engineering']]; $('#parsedrows').innerHTML=rows.map((r,i)=>`<div class="parsed"><div><span class="muted small">${r[0]}</span><br><span>${r[1]}</span></div><div class="seg" role="group" aria-label="Decision for ${r[0]}"><button type="button" aria-pressed="false">Accept</button><button type="button" aria-pressed="false">Edit</button><button type="button" aria-pressed="false">Reject</button></div></div>`).join(''); $('#parsed').hidden=false; $$('#parsedrows .seg').forEach(seg=>$$('button',seg).forEach(b=>b.onclick=()=>{ $$('button',seg).forEach(x=>x.setAttribute('aria-pressed','false')); b.setAttribute('aria-pressed','true'); if(b.textContent==='Edit'){ const v=seg.parentElement.querySelector('div > span:last-child'); v.contentEditable='true'; v.focus(); } })); log('system:parser','ResumeVersion.parsed','v1 · 7 proposed fields for candidate review'); toast('Parsed 7 fields. Nothing is saved until you decide on each.'); };
 
 /* ---------- employer lead ---------- */
-$('#lead').addEventListener('submit',e=>{ e.preventDefault(); let ok=true; $$('#lead [required]').forEach(el=>{ const err=el.parentElement.querySelector('.err'); let m=''; if(!el.value.trim()) m='This field is required.'; else if(el.type==='email'&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(el.value)) m='Enter a valid work email.'; el.setAttribute('aria-invalid',m?'true':'false'); err.textContent=m; if(m) ok=false; }); if(!ok) return; const f=new FormData(e.target); log('public:lead-form','EmployerLead.created',`LEAD-0142 · ${f.get('co')} · ${f.get('role')}`); preview('Inquiry received (simulated)',`<div class="banner good"><span>✓</span><span class="small">EmployerLead <code>LEAD-0142</code> created for <b>${f.get('co')}</b> (${f.get('role')}, ${f.get('urg')}). A recruiter qualifies the lead before any organization or contact is verified.</span></div><p class="small muted">Preferred contact: ${f.get('via')}. No message was sent; notifications are previews in the prototype.</p>`); e.target.reset(); });
+$('#lead').addEventListener('submit',e=>{ e.preventDefault(); let ok=true; $$('#lead [required]').forEach(el=>{ const err=el.parentElement.querySelector('.err'); let m=''; if(!el.value.trim()) m='This field is required.'; else if(el.type==='email'&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(el.value)) m='Enter a valid work email.'; el.setAttribute('aria-invalid',m?'true':'false'); err.textContent=m; if(m) ok=false; }); if(!ok) return; const f=new FormData(e.target); const btn=e.target.querySelector('button[type=submit]'); btn.disabled=true; const old=btn.textContent; btn.textContent='Sending…';
+  const fields={'Company':f.get('co'),'Contact name':f.get('who'),'Work email':f.get('em'),'Preferred contact':f.get('via'),'Role':f.get('role'),'Location / arrangement':f.get('loc'),'Urgency':f.get('urg'),'Hiring need':f.get('need'), botcheck:''};
+  deliver(`Employer inquiry — ${f.get('co')}`, fields, f.get('em')).then(()=>{ preview('Inquiry sent',`<div class="banner good"><span>✓</span><span class="small">Thank you. Your inquiry is with us at <b>${CONTACT}</b>; we will reply from that address within a few business days.</span></div>`); e.target.reset(); }).catch(()=>{ preview('Could not send',`<div class="banner bad"><span>✕</span><span class="small">Your inquiry did not go through. Please try again in a moment, or email us directly at <b>${CONTACT}</b>.</span></div>`); }).finally(()=>{ btn.disabled=false; btn.textContent=old; }); });
 
 /* ---------- share ---------- */
 const url=PUBLISHED_URL||(document.referrer&&document.referrer.includes('claude.ai')?document.referrer:'');
